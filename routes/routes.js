@@ -13,6 +13,49 @@ router.get("/hello", (req, res, next) => {
     });
 });
 
+router.post("/login", (req, res, next) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    User.findOne({
+        username: username,
+    })
+        .then((user) => {
+            if (user.length < 1) {
+                res.status(401).json({
+                    message: "Auth failed",
+                });
+            } else {
+                bcrypt.compare(password, user.password, (err, result) => {
+                    if (err || !result) {
+                        return res.status(401).json({
+                            message: "Auth failed",
+                        });
+                    }
+                    if (result) {
+                        const token = jwt.sign(
+                            {
+                                _id: user._id,
+                                username: user.username
+                            },
+                            "jwt_pw",
+                            {
+                                expiresIn: "1h",
+                            }
+                        );
+                        return res.status(200).json({
+                            message: "Auth successful",
+                            token: token,
+                        });
+                    }
+                });
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).json({ error: err });
+        });
+});
+
 router.post("/register", (req, res, next) => {
     User.find({
         username: req.body.username,
@@ -29,7 +72,7 @@ router.post("/register", (req, res, next) => {
                     });
                 } else {
                     var newUser;
-                    if(req.body.specialty){
+                    if (req.body.specialty) {
                         newUser = new User({
                             _id: new mongoose.Types.ObjectId(),
                             username: req.body.username,
@@ -37,7 +80,7 @@ router.post("/register", (req, res, next) => {
                             user_role: req.body.user_role,
                             specialty: req.body.specialty,
                         });
-                    } else if(req.body.journal){
+                    } else if (req.body.journal) {
                         newUser = new User({
                             _id: new mongoose.Types.ObjectId(),
                             username: req.body.username,
@@ -72,7 +115,7 @@ router.post("/register", (req, res, next) => {
 });
 
 router.get('/specialties', (req, res, next) => {
-    User.find({}, {'specialty':1, '_id':0},).then(
+    User.find({}, { 'specialty': 1, '_id': 0 },).then(
         specialties => {
             const result = specialties.filter(specialty => JSON.stringify(specialty) !== '{}')
             var resultArr = [];
@@ -84,18 +127,18 @@ router.get('/specialties', (req, res, next) => {
             return res.status(200).json(
                 resultArr
             )
-        }   
+        }
     ).catch(err => res.status(500).json(err));
 });
 
 router.get('/patient_details/:user', (req, res, next) => {
     User.find(
         {
-        username: req.params.user,
-        user_role: 'patient'
+            username: req.params.user,
+            user_role: 'patient'
         }, 'username user_role journal'
     ).then(patients => res.status(200).json(patients)).catch(err => res.status(500).json(err));
-})
+});
 
 router.post("/new_appointment", (req, res, next) => {
     const newAppointment = new Appointment({
@@ -104,25 +147,25 @@ router.post("/new_appointment", (req, res, next) => {
         "date": new Date(req.body.date)
     });
 
-    newAppointment.save().then( success =>
+    newAppointment.save().then(success =>
         res.status(200).json(success)
     ).catch(err => res.status(500).json(err));
-})
+});
 
 router.get('/appointments', (req, res, next) => {
     Appointment.find({}).then(appointments => res.status(200).json(appointments)).catch(err => res.status(500).json(err));
-})
+});
 
 router.get('/appointments/doctor/:user', (req, res, next) => {
     Appointment.find({
         doctor_username: req.params.user
     }).then(appointments => res.status(200).json(appointments)).catch(err => res.status(500).json(err));
-})
+});
 
 router.get('/appointments/patient/:user', (req, res, next) => {
     Appointment.find({
         patient_username: req.params.user
     }).then(appointments => res.status(200).json(appointments)).catch(err => res.status(500).json(err));
-})
+});
 
 module.exports = router;
