@@ -1,0 +1,26 @@
+.menu-navbar{
+
+    .ui.vertical.menu{
+        height:100%;
+        position: fixed;
+        
+
+        background-color: #1f2d3a !important;
+        .item{
+            color: #ECEBE4 !important;
+            line-height: 1.5em !important;
+        }
+
+        .item.active{
+            background-color: #ECEBE4 !important;
+            color: #1f2d3a !important;
+            
+        }
+
+        .header{
+            font-style: oblique;
+        }
+
+        
+    }
+}
