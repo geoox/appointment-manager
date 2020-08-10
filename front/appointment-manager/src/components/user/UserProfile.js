@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
-import './DoctorProfile.scss';
-import SideMenu from './SideMenu'
-import { Image, Grid, Card, Header, Icon } from 'semantic-ui-react'
+import './UserProfile.scss';
+import UserMenu from './UserMenu'
+import { Image, Grid, Card, Header, Icon, Form, TextArea, Button } from 'semantic-ui-react'
 
 
-class DoctorProfile extends Component {
+class UserProfile extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             data: {
-                username: 'andreidoctor',
-                name: 'Andrei The Doctor',
-                specialty: 'Bones'
+                username: 'andreipatient',
+                name: 'Andrei The Patient',
+                journal: 'Bones problems since childhood'
             },
         }
     }
@@ -36,7 +36,7 @@ class DoctorProfile extends Component {
         return (
             <Grid>
                 <Grid.Row>
-                    <SideMenu></SideMenu>
+                    <UserMenu></UserMenu>
                     <div className="profile">
                         <Header as='h2'>
                             <Icon name='address book outline' />
@@ -47,13 +47,11 @@ class DoctorProfile extends Component {
                         </Header>
 
                         <Card>
-                            <Image src='https://www.lumos.edu/wp-content/uploads/2017/07/doctor-1.png' wrapped ui={false} />
+                            <Image src='https://lh3.googleusercontent.com/proxy/Fte11l82DF2fIYonx9HQLkRedx7TD_J7rmDp_MTnHF5F1arajJIlnxy7CNiTShafYu4KXiYKJ7tu0Qn0QermqmsISpyh7KpGIuJtS5SRcZ4RHAT1zj1Q2t1ChEP_gEo' wrapped ui={false} />
                             <Card.Content>
                                 <Card.Header>{this.state.data.name}</Card.Header>
                                 <Card.Description>
-                                    Doctor
-                                    <br/>
-                                    Specialty: {this.state.data.specialty}
+                                    Patient
                                 </Card.Description>
                             </Card.Content>
                             <Card.Content extra>
@@ -63,6 +61,16 @@ class DoctorProfile extends Component {
                                 </a>
                             </Card.Content>
                         </Card>
+                        <Card>
+                            <Card.Content>
+                                <Card.Header className="card-header-journal">Medical Journal</Card.Header>
+                                <Form>
+                                    <TextArea placeholder="Patient's journal" value={this.state.data.journal} rows={5}/>
+                                </Form>
+                            </Card.Content>
+                            <Button secondary>Update Journal</Button>
+                        </Card>
+
                     </div>
                 </Grid.Row>
             </Grid>
@@ -72,4 +80,4 @@ class DoctorProfile extends Component {
 
 
 
-export default DoctorProfile;
+export default UserProfile;

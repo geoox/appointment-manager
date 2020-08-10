@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
 import { Menu } from 'semantic-ui-react'
-import './SideMenu.scss'
+import './UserMenu.scss'
 import { NavLink } from 'react-router-dom';
 
-class SideMenu extends Component {
+class UserMenu extends Component {
     handleItemClick = name => this.setState({ activeItem: name })
     logOut = () => {
         console.log('log out!');
@@ -23,7 +23,7 @@ class SideMenu extends Component {
                                 name='Dashboard'
                                 active={activeItem === 'dashboard'}
                                 onClick={this.handleItemClick}
-                                as={NavLink} exact to="/doctor/dashboard"
+                                as={NavLink} exact to="/patient/dashboard"
                             />
                         </Menu.Menu>
 
@@ -32,10 +32,20 @@ class SideMenu extends Component {
                                 name='My Profile'
                                 active={activeItem === 'myprofile'}
                                 onClick={this.handleItemClick}
-                                as={NavLink} exact to="/doctor/profile"
+                                as={NavLink} exact to="/patient/profile"
+                            />
+                        </Menu.Menu>
+
+                        <Menu.Menu>
+                            <Menu.Item
+                                name='Clinics'
+                                active={activeItem === 'clinics'}
+                                onClick={this.handleItemClick}
+                                as={NavLink} exact to="/patient/clinics"
                             />
                         </Menu.Menu>
                     </Menu.Item>
+
 
 
                     <Menu.Item>
@@ -53,4 +63,4 @@ class SideMenu extends Component {
     }
 }
 
-export default SideMenu;
+export default UserMenu;
