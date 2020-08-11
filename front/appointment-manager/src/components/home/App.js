@@ -9,6 +9,9 @@ import DoctorDashboard from '../doctor/DoctorDashboard';
 import UserProfile from '../user/UserProfile';
 import UserDashboard from '../user/UserDashboard'
 import Clinics from '../user/Clinics';
+import AdminAppointments from '../admin/AdminAppointments';
+import AdminAccounts from '../admin/AdminAccounts';
+import AdminClinics from '../admin/AdminClinics';
 
 function App() {
   var loggedIn = true;
@@ -24,6 +27,9 @@ function App() {
       <Route exact path='/patient/profile' component={UserProfile}/>
       <Route exact path='/patient/dashboard' component={UserDashboard}/>
       <Route exact path='/patient/clinics' component={Clinics}/>
+      <Route exact path='/admin/appointments' component={AdminAppointments}/>
+      <Route exact path='/admin/accounts' component={AdminAccounts}/>
+      <Route exact path='/admin/clinics' component={AdminClinics}/>
     </Switch>
   );
 }

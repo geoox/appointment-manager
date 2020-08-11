@@ -1,3 +1,11 @@
 .clinics{
-    margin-left: 20rem;
+    margin-left: 20rem !important;
+    padding: 8rem;
+
+    .column{
+        width: 25vw !important;
+        margin: auto !important;
+        margin-top: 5rem !important;
+        padding: 0 !important;
+    }
 }
