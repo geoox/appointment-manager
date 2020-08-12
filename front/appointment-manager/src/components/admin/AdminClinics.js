@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './AdminClinics.scss';
 import AdminMenu from './AdminMenu'
-import { Table, Grid, Card, Header, Icon } from 'semantic-ui-react'
+import { Modal, Table, Grid, Button, Header, Icon, Form } from 'semantic-ui-react'
 import _ from 'lodash';
 
 
@@ -13,22 +13,25 @@ class AdminClinics extends Component {
             column: null,
             data: null,
             direction: null,
+            modal_open: false,
+            location: null,
+            name: null,
+            schedule: null
         }
     }
 
+    fetchClinics(){
+        fetch('https://appointment-mng.herokuapp.com/clinics')
+        .then(responses => responses.json().then(clinics => {
+            console.log('responses', clinics)
+            this.setState({
+                data: clinics
+            })
+        }));
+    }
+
     componentDidMount() {
-
-        Promise.all([
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/users/1').then(res => res.json()),
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/finished_tests').then(res => res.json())
-        ])
-            .then(responses => {
-                console.log('responses', responses)
-                this.setState({
-                    data: responses
-                })
-            });
-
+        this.fetchClinics();
     }
 
     handleSort = clickedColumn => () => {
@@ -50,6 +53,54 @@ class AdminClinics extends Component {
         })
     }
 
+    openModal(){
+        this.setState({
+            modal_open: true
+        })
+    }
+
+    closeModal(){
+        this.setState({
+            modal_open: false
+        })
+    }
+
+    saveModal(){
+        console.log("saved clicked");
+        this.setState({
+            modal_open: false
+        })
+
+        const newClinic = {
+            location: this.state.location,
+            schedule: this.state.schedule,
+            name: this.state.name
+        }
+
+        fetch('https://appointment-mng.herokuapp.com/clinics', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newClinic),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                this.fetchClinics();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+        });
+
+    }
+
+    handleChange = (e) =>{
+        this.setState({
+            [e.target.id]: e.target.value
+        })
+    }
+
     render() {
         const { column, data, direction } = this.state
         return (
@@ -66,6 +117,46 @@ class AdminClinics extends Component {
                             </Header.Content>
                         </Header>
 
+
+                        <Modal
+                            
+                            
+                            open={this.state.modal_open}
+                            trigger={<Button secondary onClick={()=>this.openModal()}>Register a new clinic</Button>}
+                            >
+                                <Header icon>
+                                    <Icon name='hospital' />
+                                    Register a new clinic
+                                </Header>
+                                <Modal.Content>
+                                    <Form>
+                                        <Form.Field>
+                                            <label className='labelRed'>Clinic name</label>
+                                            <input placeholder='Name' onKeyUp={this.handleChange} id="name"/>
+                                        </Form.Field>
+                                        <Form.Field>
+                                            <label>Location coordinates</label>
+                                            <input placeholder='Coordinates' onKeyUp={this.handleChange} id="location"/>
+                                        </Form.Field>
+                                        <Form.Field>
+                                            <label>Schedule</label>
+                                            <input placeholder='Schedule' onKeyUp={this.handleChange} id="schedule"/>
+                                        </Form.Field>
+                                    </Form>
+                                </Modal.Content>
+                                <Modal.Actions>
+                                    <Button color='black' onClick={() => this.closeModal()}>
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        content="Save"
+                                        labelPosition='right'
+                                        icon='checkmark'
+                                        onClick={() => this.saveModal()}
+                                        positive
+                                    />
+                                </Modal.Actions>
+                            </Modal>
 
                         <Table sortable celled fixed>
                             <Table.Header>
@@ -89,11 +180,11 @@ class AdminClinics extends Component {
                                 </Table.Row>
                             </Table.Header>
                             <Table.Body>
-                                {_.map(data, ({ date, name, approved }) => (
-                                    <Table.Row key={approved}>
-                                        <Table.Cell>{date}</Table.Cell>
+                                {_.map(data, ({ name, location, schedule }) => (
+                                    <Table.Row key={name}>
                                         <Table.Cell>{name}</Table.Cell>
-                                        <Table.Cell>{approved}</Table.Cell>
+                                        <Table.Cell>{location}</Table.Cell>
+                                        <Table.Cell>{schedule}</Table.Cell>
                                     </Table.Row>
                                 ))}
                             </Table.Body>

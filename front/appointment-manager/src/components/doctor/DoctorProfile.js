@@ -9,6 +9,7 @@ class DoctorProfile extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            loggedUser: localStorage.getItem('user'),
             data: {
                 username: 'andreidoctor',
                 name: 'Andrei The Doctor',
@@ -19,16 +20,17 @@ class DoctorProfile extends Component {
 
     componentDidMount() {
 
-        Promise.all([
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/users/1').then(res => res.json()),
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/finished_tests').then(res => res.json())
-        ])
-            .then(responses => {
-                console.log('responses', responses)
-                this.setState({
-                    data: responses
-                })
-            });
+        this.setState({
+            loggedUser: localStorage.getItem('user')
+        }) 
+
+        fetch('https://appointment-mng.herokuapp.com/doctor/' + this.state.loggedUser).then(res => res.json())
+        .then(response => {
+            console.log('response', response)
+            this.setState({
+                data: response[0]
+            })
+        });
 
     }
 

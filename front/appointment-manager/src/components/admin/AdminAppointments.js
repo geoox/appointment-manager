@@ -3,6 +3,7 @@ import './AdminAppointments.scss';
 import AdminMenu from './AdminMenu'
 import { Table, Grid, Card, Header, Icon } from 'semantic-ui-react'
 import _ from 'lodash';
+import moment from 'moment';
 
 
 class AdminAppointments extends Component {
@@ -18,16 +19,13 @@ class AdminAppointments extends Component {
 
     componentDidMount() {
 
-        Promise.all([
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/users/1').then(res => res.json()),
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/finished_tests').then(res => res.json())
-        ])
-            .then(responses => {
-                console.log('responses', responses)
+        fetch('https://appointment-mng.herokuapp.com/appointments')
+            .then(responses => responses.json().then(app => {
+                console.log('responses', app)
                 this.setState({
-                    data: responses
+                    data: app
                 })
-            });
+            }));
 
     }
 
@@ -78,22 +76,22 @@ class AdminAppointments extends Component {
                                     <Table.HeaderCell
                                         sorted={column === 'patientname' ? direction : null}
                                     >
-                                        Patient Name
+                                        Patient Username
                                     </Table.HeaderCell>
                                     <Table.HeaderCell
                                         sorted={column === 'doctorname' ? direction : null}
                                     >
-                                        Doctor Name
+                                        Doctor Username
                                     </Table.HeaderCell>
 
                                 </Table.Row>
                             </Table.Header>
                             <Table.Body>
-                                {_.map(data, ({ date, name, approved }) => (
-                                    <Table.Row key={approved}>
-                                        <Table.Cell>{date}</Table.Cell>
-                                        <Table.Cell>{name}</Table.Cell>
-                                        <Table.Cell>{approved}</Table.Cell>
+                                {_.map(data, ({ date, patient_username, doctor_username }) => (
+                                    <Table.Row key={date}>
+                                        <Table.Cell>{moment(date).format('LLLL')}</Table.Cell>
+                                        <Table.Cell>{patient_username}</Table.Cell>
+                                        <Table.Cell>{doctor_username}</Table.Cell>
                                     </Table.Row>
                                 ))}
                             </Table.Body>

@@ -6,6 +6,7 @@ import _ from 'lodash';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import 'react-datepicker/dist/react-datepicker-cssmodules.css';
+import moment from 'moment'
 
 import setHours from "date-fns/setHours";
 import setMinutes from "date-fns/setMinutes";
@@ -16,37 +17,97 @@ import getDay from "date-fns/getDay";
 class UserAppointments extends Component {
     constructor(props) {
         super(props);
+        this.onSpecialtyChange = this.onSpecialtyChange.bind(this);
+        this.onDoctorChange = this.onDoctorChange.bind(this);
+
         this.state = {
             column: null,
             data_future: null,
             data_past: null,
             direction: null,
             modal_open: false,
-            doctors: ["dr1", "dr2"],
-            startDate: new Date(),
+            doctors: [],
+            specialties: [],
+            startDate: null,
             excludeTimes: [
-                setHours(setMinutes(new Date(), 0), 17),
-                setHours(setMinutes(new Date(), 30), 18),
-                setHours(setMinutes(new Date(), 30), 19),
-                setHours(setMinutes(new Date(), 30), 17)
-              ]
+            ],
+            specialty_choice: null,
+            doctor_choice: null,
+            doctor_appointments: []
         }
+    }
+
+    fetchAllAppointments(){
+        Promise.all([
+            fetch('https://appointment-mng.herokuapp.com/appointments/patient/'+localStorage.getItem('user')+"/future").then(res => res.json()),
+            fetch('https://appointment-mng.herokuapp.com/appointments/patient/'+localStorage.getItem('user')+"/past").then(res => res.json()),
+        ])
+        .then(appointments => {
+            this.setState({
+                data_future: appointments[0],
+                data_past: appointments[1]
+            })
+        })
     }
 
     componentDidMount() {
 
-        Promise.all([
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/users/1').then(res => res.json()),
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/finished_tests').then(res => res.json())
-        ])
-            .then(responses => {
-                console.log('responses', responses)
-                this.setState({
-                    data_future: responses[0],
-                    data_past: responses[1]
-                })
-            });
+        this.fetchAllAppointments();
 
+    }
+
+    fetchSpecialties(){
+        fetch('https://appointment-mng.herokuapp.com/specialties')
+        .then(resp => resp.json()
+        .then(specialties => {
+            let specialtiesArr = [];
+            _.forEach(specialties, specialty => {
+                specialtiesArr.push({
+                    key: specialty, value: specialty, text: specialty
+                })
+            })
+            console.log('specialties', specialtiesArr);
+            this.setState({
+                specialties: specialtiesArr
+            })
+        }))
+    }
+
+    fetchDoctors(){
+        fetch('https://appointment-mng.herokuapp.com/doctors/' + this.state.specialty_choice)
+        .then(resp => resp.json()
+        .then(doctors => {
+            let doctorsArr = [];
+            _.forEach(doctors, doctor => {
+                doctorsArr.push({
+                    key: doctor.username, value: doctor.username, text: doctor.name
+                })
+            })
+            console.log('doctors', doctorsArr);
+            this.setState({
+                doctors: doctorsArr
+            })
+        }))
+    }
+
+    fetchDoctorAppointments(){
+        fetch('https://appointment-mng.herokuapp.com/appointments/doctor/'+this.state.doctor_choice)
+        .then(resp => resp.json())
+        .then(appointments => {
+            _.forEach(appointments, appointment => {
+                // let excludeDatesArr = this.state.excludeTimes;
+                // excludeDatesArr.push(Date.parse(appointment.date));
+                // this.setState({
+                //     excludeTimes: excludeDatesArr
+                // })
+                let drAppointments = this.state.doctor_appointments;
+                drAppointments.push(appointment.date);
+
+                this.setState({
+                    doctor_appointments: drAppointments
+                }, ()=> console.log('dates', this.state.doctor_appointments))
+            })
+        })
     }
 
     handleSort = clickedColumn => () => {
@@ -69,6 +130,7 @@ class UserAppointments extends Component {
     }
 
     openModal(){
+        this.fetchSpecialties();
         this.setState({
             modal_open: true
         })
@@ -80,50 +142,82 @@ class UserAppointments extends Component {
         })
     }
 
-    saveModal(){
-        console.log("saved clicked");
+    onSpecialtyChange(e, data){
+        console.log(data.value);
         this.setState({
-            modal_open: false
-        })
+            specialty_choice: data.value
+        }, () => this.fetchDoctors());
+    }
+
+    onDoctorChange(e, data){
+        console.log(data.value);
+        this.setState({
+            doctor_choice: data.value
+        }, () => this.fetchDoctorAppointments());
     }
 
     handleCalendarChange = date => {
         this.setState({
-          startDate: date
+            excludeTimes: []
+        }, () => {
+
+            this.state.doctor_appointments.map(doctor_date => {
+                console.log('one date', doctor_date)
+                if(moment(doctor_date).isSame(date, "day")){
+                    let excludeArr = this.state.excludeTimes;
+                    excludeArr.push(Date.parse(doctor_date));
+                    this.setState({
+                        excludeTimes: excludeArr
+                    }, ()=>console.log('excluded times', this.state.excludeTimes))
+                }
+            })
+    
+            this.setState({
+            startDate: date
+            });
+
+        })
+    };
+
+
+    saveModal(){
+        let newAppointment = {
+            patient_username: localStorage.getItem('user'),
+            doctor_username: this.state.doctor_choice,
+            date: this.state.startDate
+        }
+        fetch('https://appointment-mng.herokuapp.com/new_appointment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newAppointment),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                this.fetchAllAppointments();
+                this.setState({
+                    modal_open: false
+                });
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                this.setState({
+                    modal_open: false
+                })
         });
-      };
+    }
 
     render() {
+
         const calendarFilter = date => {
             const day = getDay(date);
             return date >= new Date() && day !== 0 && day!== 6;
         }
+
         const { column, data_future, data_past, direction } = this.state;
-        const countryOptions = [
-            { key: 'af', value: 'af', text: 'Afghanistan' },
-            { key: 'ax', value: 'ax', text: 'Aland Islands' },
-            { key: 'al', value: 'al', text: 'Albania' },
-            { key: 'dz', value: 'dz', text: 'Algeria' },
-            { key: 'as', value: 'as', text: 'American Samoa' },
-            { key: 'ad', value: 'ad', text: 'Andorra' },
-            { key: 'ao', value: 'ao', text: 'Angola' },
-            { key: 'ai', value: 'ai', text: 'Anguilla' },
-            { key: 'ag', value: 'ag', text: 'Antigua' },
-            { key: 'ar', value: 'ar', text: 'Argentina' },
-            { key: 'am', value: 'am', text: 'Armenia' },
-            { key: 'aw', value: 'aw', text: 'Aruba' },
-            { key: 'au', value: 'au', text: 'Australia' },
-            { key: 'at', value: 'at', text: 'Austria' },
-            { key: 'az', value: 'az', text: 'Azerbaijan' },
-            { key: 'bs', value: 'bs', text: 'Bahamas' },
-            { key: 'bh', value: 'bh', text: 'Bahrain' },
-            { key: 'bd', value: 'bd', text: 'Bangladesh' },
-            { key: 'bb', value: 'bb', text: 'Barbados' },
-            { key: 'by', value: 'by', text: 'Belarus' },
-            { key: 'be', value: 'be', text: 'Belgium' },
-            { key: 'bz', value: 'bz', text: 'Belize' },
-            { key: 'bj', value: 'bj', text: 'Benin' },
-          ]
+
         return (
             <div className="appointments">
                 <Header as='h2'>
@@ -147,29 +241,44 @@ class UserAppointments extends Component {
                         {/* <Image size='medium' src='https://react.semantic-ui.com/images/avatar/large/rachel.png' wrapped /> */}
                         <Modal.Description>
                             <Header>Create a new appointment</Header>
-                            Doctor:
+                            Specialty:
                             <Dropdown
-                                placeholder='Select Doctor'
+                                placeholder='Select Specialty'
                                 fluid
                                 search
                                 labeled
                                 selection
-                                options={countryOptions}
+                                options={this.state.specialties}
+                                onChange={this.onSpecialtyChange}
+                            />
+                            Doctor:
+                            <Dropdown
+                                placeholder='Please Select Specialty First'
+                                fluid
+                                search
+                                labeled
+                                selection
+                                options={this.state.doctors}
+                                onChange={this.onDoctorChange}
                             />
                             <br/>
                             Date:
                             <br/>
                             <DatePicker
+                                id="datepicker"
                                 selected={this.state.startDate}
                                 onChange={this.handleCalendarChange}
                                 showTimeSelect
+                                minTime={setHours(setMinutes(new Date(), 0), 8)}
+                                maxTime = {setHours(setMinutes(new Date(), 0), 18)}
                                 timeFormat="HH:mm"
                                 timeIntervals={30}
                                 timeCaption="Time"
                                 dateFormat="MM/dd/yyyy h:mm aa"
                                 filterDate={calendarFilter}
+                                disabled={this.state.doctor_choice===null}
+                                placeholderText="Please select the doctor first"
                                 excludeTimes={this.state.excludeTimes}
-                                
                                 />
                         </Modal.Description>
                     </Modal.Content>
@@ -203,16 +312,16 @@ class UserAppointments extends Component {
                             <Table.HeaderCell
                                 sorted={column === 'name' ? direction : null}
                             >
-                                Doctor name
+                                Doctor username
                 </Table.HeaderCell>
 
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
-                        {_.map(data_future, ({ date, name, approved }) => (
-                            <Table.Row key={approved}>
-                                <Table.Cell>{date}</Table.Cell>
-                                <Table.Cell>{name}</Table.Cell>
+                        {_.map(data_future, ({ date, doctor_username }) => (
+                            <Table.Row key={date}>
+                                <Table.Cell>{moment(date).format('LLLL')}</Table.Cell>
+                                <Table.Cell>{doctor_username}</Table.Cell>
                             </Table.Row>
                         ))}
                     </Table.Body>
@@ -233,16 +342,16 @@ class UserAppointments extends Component {
                             <Table.HeaderCell
                                 sorted={column === 'name' ? direction : null}
                             >
-                                Doctor name
+                                Doctor username
                 </Table.HeaderCell>
 
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
-                        {_.map(data_past, ({ date, name, approved }) => (
-                            <Table.Row key={approved}>
-                                <Table.Cell>{date}</Table.Cell>
-                                <Table.Cell>{name}</Table.Cell>
+                        {_.map(data_past, ({ date, doctor_username }) => (
+                            <Table.Row key={date}>
+                                <Table.Cell>{moment(date).format('LLLL')}</Table.Cell>
+                                <Table.Cell>{doctor_username}</Table.Cell>
                             </Table.Row>
                         ))}
                     </Table.Body>

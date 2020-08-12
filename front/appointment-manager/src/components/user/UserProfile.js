@@ -10,26 +10,60 @@ class UserProfile extends Component {
         super(props);
         this.state = {
             data: {
-                username: 'andreipatient',
-                name: 'Andrei The Patient',
-                journal: 'Bones problems since childhood'
+                name: null,
+                username: null,
+                journal: ''
             },
         }
     }
 
+    fetchPatient(){
+        fetch('https://appointment-mng.herokuapp.com/patient/'+localStorage.getItem('user'))
+        .then(userDetails => userDetails.json().then(details=>{
+            console.log(details);
+            this.setState({
+                data: details[0]
+            });
+        }))
+    }
+
     componentDidMount() {
 
-        Promise.all([
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/users/1').then(res => res.json()),
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/finished_tests').then(res => res.json())
-        ])
-            .then(responses => {
-                console.log('responses', responses)
-                this.setState({
-                    data: responses
-                })
-            });
+        this.fetchPatient();
 
+    }
+
+    onJournalChanged = (e) => {
+        this.setState({
+            data:{
+                journal: e.target.value,
+                name: this.state.data.name,
+                username: this.state.data.username
+            }
+        })
+    }
+
+    onUpdateJournalClick = () => {
+
+        const obj = {
+            journal: this.state.data.journal
+        }
+
+        fetch('https://appointment-mng.herokuapp.com/patient/update/'+localStorage.getItem('user'), {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(obj),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                this.fetchPatient();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+        });
     }
 
     render() {
@@ -47,7 +81,7 @@ class UserProfile extends Component {
                         </Header>
 
                         <Card>
-                            <Image src='https://lh3.googleusercontent.com/proxy/Fte11l82DF2fIYonx9HQLkRedx7TD_J7rmDp_MTnHF5F1arajJIlnxy7CNiTShafYu4KXiYKJ7tu0Qn0QermqmsISpyh7KpGIuJtS5SRcZ4RHAT1zj1Q2t1ChEP_gEo' wrapped ui={false} />
+                            <Image src='https://upload.wikimedia.org/wikipedia/commons/6/67/User_Avatar.png' wrapped ui={false} />
                             <Card.Content>
                                 <Card.Header>{this.state.data.name}</Card.Header>
                                 <Card.Description>
@@ -65,10 +99,10 @@ class UserProfile extends Component {
                             <Card.Content>
                                 <Card.Header className="card-header-journal">Medical Journal</Card.Header>
                                 <Form>
-                                    <TextArea placeholder="Patient's journal" value={this.state.data.journal} rows={5}/>
+                                    <TextArea placeholder="Patient's journal" value={this.state.data.journal} rows={5} onChange={this.onJournalChanged}/>
                                 </Form>
                             </Card.Content>
-                            <Button secondary>Update Journal</Button>
+                            <Button secondary onClick={this.onUpdateJournalClick}>Update Journal</Button>
                         </Card>
 
                     </div>

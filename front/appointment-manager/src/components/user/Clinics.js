@@ -10,47 +10,28 @@ class Clinics extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            clinics: [
-                {
-                    name: "Coltescu",
-                    location: "45.790789, 24.158143",
-                    schedule: "09:00 - 18:00"
-                },
-                {
-                    name: "Vitan",
-                    location: "45.790789, 24.158143",
-                    schedule: "10:00 - 18:30"
-                },
-                {
-                    name: "Titan",
-                    location: "45.790789, 24.158143",
-                    schedule: "09:00 - 16:30"
-                }
-            ]
+            data: null
         }
     }
 
     componentDidMount() {
 
-        Promise.all([
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/users/1').then(res => res.json()),
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/finished_tests').then(res => res.json())
-        ])
-            .then(responses => {
-                console.log('responses', responses)
-                this.setState({
-                    data: responses
-                })
-            });
+        fetch('https://appointment-mng.herokuapp.com/clinics')
+        .then(responses => responses.json().then(clinics => {
+            console.log('responses', clinics)
+            this.setState({
+                data: clinics
+            })
+        }));
 
     }
 
     render() {
         return (<div>
-                    <UserMenu></UserMenu>
+                    <UserMenu ></UserMenu>
                     <Grid columns='three' divided className="clinics">
                         <Grid.Row>
-                            {_.map(this.state.clinics, (clinic)=>
+                            {_.map(this.state.data, (clinic)=>
                             <Grid.Column>
                                 <Card>
                                     <Image src='https://pngimage.net/wp-content/uploads/2018/06/hopital-png-5.png' wrapped ui={false} />

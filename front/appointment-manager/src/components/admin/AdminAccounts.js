@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './AdminAccounts.scss';
 import AdminMenu from './AdminMenu'
-import { Table, Grid, Card, Header, Icon } from 'semantic-ui-react'
+import { Table, Grid, Button, Header, Icon } from 'semantic-ui-react'
 import _ from 'lodash';
 
 
@@ -18,16 +18,13 @@ class AdminAccounts extends Component {
 
     componentDidMount() {
 
-        Promise.all([
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/users/1').then(res => res.json()),
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/finished_tests').then(res => res.json())
-        ])
-            .then(responses => {
-                console.log('responses', responses)
+        fetch('https://appointment-mng.herokuapp.com/accounts')
+            .then(responses => responses.json().then(accounts => {
+                console.log('responses', accounts)
                 this.setState({
-                    data: responses
+                    data: accounts
                 })
-            });
+            }));
 
     }
 
@@ -50,6 +47,11 @@ class AdminAccounts extends Component {
         })
     }
 
+    onRegisterClick(){
+        console.log('register clicked');
+        this.props.history.push('/register');
+    }
+
     render() {
         const { column, data, direction } = this.state
         return (
@@ -66,7 +68,7 @@ class AdminAccounts extends Component {
                             </Header.Content>
                         </Header>
 
-
+                        <Button secondary onClick={()=>this.onRegisterClick()}>Register a new account</Button>
                         <Table sortable celled fixed>
                             <Table.Header>
                                 <Table.Row>
@@ -89,11 +91,11 @@ class AdminAccounts extends Component {
                                 </Table.Row>
                             </Table.Header>
                             <Table.Body>
-                                {_.map(data, ({ date, name, approved }) => (
-                                    <Table.Row key={approved}>
-                                        <Table.Cell>{date}</Table.Cell>
+                                {_.map(data, ({ username, name, user_role }) => (
+                                    <Table.Row key={username}>
+                                        <Table.Cell>{username}</Table.Cell>
                                         <Table.Cell>{name}</Table.Cell>
-                                        <Table.Cell>{approved}</Table.Cell>
+                                        <Table.Cell>{user_role}</Table.Cell>
                                     </Table.Row>
                                 ))}
                             </Table.Body>

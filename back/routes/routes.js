@@ -153,6 +153,23 @@ router.get('/doctor/:user', (req, res, next) => {
     ).then(doctors => res.status(200).json(doctors)).catch(err => res.status(500).json(err));
 });
 
+router.get('/doctors/', (req, res, next) => {
+    User.find(
+        {
+            user_role: 'doctor'
+        }, 'username user_role specialty name'
+    ).then(doctors => res.status(200).json(doctors)).catch(err => res.status(500).json(err));
+});
+
+router.get('/doctors/:specialty', (req, res, next) => {
+    User.find(
+        {
+            user_role: 'doctor',
+            specialty: req.params.specialty
+        }, 'username user_role specialty name'
+    ).then(doctors => res.status(200).json(doctors)).catch(err => res.status(500).json(err));
+});
+
 router.post("/new_appointment", (req, res, next) => {
     const newAppointment = new Appointment({
         "patient_username": req.body.patient_username,
@@ -199,10 +216,14 @@ router.get('/accounts', (req, res, next) => {
     User.find({}).then(users => res.status(200).json(users)).catch(err => res.status(500).json(err));
 })
 
-router.put('/patient/update', (req, res, next) => {
-    User.update({
+router.put('/patient/update/:user', (req, res, next) => {
+    User.findOneAndUpdate({
+        username: req.params.user
+    },
+    {
         journal: req.body.journal
-    }).then( resp => res.status(200).json(resp)).catch(err => res.status(500).json(err));
+    })
+    .then(resp => res.status(200).json(resp)).catch(err => res.status(500).json(err));
 })
 
 router.get('/appointments/patient/:user/future', (req, res, next) => {

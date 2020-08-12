@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import './DoctorDashboard.scss';
 import SideMenu from './SideMenu'
-import { Button, Checkbox, Icon, Table, Grid, Header } from 'semantic-ui-react'
-import _ from 'lodash'
+import { Modal, Button, Icon, Table, Grid, Header } from 'semantic-ui-react'
+import _ from 'lodash';
+import moment from 'moment';
 
 class DoctorAppointments extends Component {
     constructor(props) {
@@ -11,22 +12,26 @@ class DoctorAppointments extends Component {
             column: null,
             data: null,
             direction: null,
+            loggedUser: localStorage.getItem('user'),
+            modal_open: false,
+            userDetails: {
+                name:'',
+                username:'',
+                journal:'',
+                history:''
+            }
         }
     }
 
     componentDidMount() {
 
-        Promise.all([
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/users/1').then(res => res.json()),
-            fetch('https://quiz-app-api-georgedobrin.c9users.io/api/finished_tests').then(res => res.json())
-        ])
-            .then(responses => {
-                console.log('responses', responses)
+        fetch('https://appointment-mng.herokuapp.com/appointments/doctor/'+this.state.loggedUser)
+            .then(response => response.json().then(appointments => {
+                console.log('appointments', appointments)
                 this.setState({
-                    data: responses
+                    data: appointments
                 })
-            });
-
+            }));
     }
 
     handleSort = clickedColumn => () => {
@@ -48,6 +53,27 @@ class DoctorAppointments extends Component {
         })
     }
 
+    openModal(user){
+        this.setState({
+            modal_open: true
+        })
+
+        console.log('user', user);
+        fetch('https://appointment-mng.herokuapp.com/patient/'+user)
+        .then(userDetails => userDetails.json().then(details=>{
+            console.log(details);
+            this.setState({
+                userDetails: details[0]
+            });
+        }))
+    }
+
+    closeModal(){
+        this.setState({
+            modal_open: false
+        })
+    }
+
     render() {
         const { column, data, direction } = this.state
 
@@ -58,7 +84,7 @@ class DoctorAppointments extends Component {
                     <Icon name='calendar alternate outline' />
                     <Header.Content>
                     Appointments
-                    <Header.Subheader>Manage your next appointments</Header.Subheader>
+                    <Header.Subheader>Check your next appointments</Header.Subheader>
                     </Header.Content>
                 </Header>
 
@@ -70,25 +96,46 @@ class DoctorAppointments extends Component {
                                 sorted={column === 'date' ? direction : null}
                             >
                                 Date and time
-                </Table.HeaderCell>
+                            </Table.HeaderCell>
                             <Table.HeaderCell
-                                sorted={column === 'name' ? direction : null}
+                                sorted={column === 'patient_username' ? direction : null}
                             >
-                                Name
-                </Table.HeaderCell>
+                                Username
+                            </Table.HeaderCell>
 
-                            <Table.HeaderCell>
-                                Approved
-              </Table.HeaderCell>
+
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
-                        {_.map(data, ({ date, name, approved }) => (
-                            <Table.Row key={approved}>
-                                <Table.Cell>{date}</Table.Cell>
-                                <Table.Cell>{name}</Table.Cell>
-                                <Table.Cell>{approved}</Table.Cell>
-                            </Table.Row>
+                        {_.map(data, ({ date, patient_username }) => (
+                            
+                            <Modal
+                            open={this.state.modal_open}
+                            trigger={
+                                <Table.Row onClick={()=>this.openModal(patient_username)} key={patient_username}>
+                                    <Table.Cell>{moment(date).format('LLLL')}</Table.Cell>
+                                    <Table.Cell>{patient_username}</Table.Cell>
+                                </Table.Row>
+                            }
+                          >
+                              <Modal.Header>
+                                  <p>User Details</p>
+                              </Modal.Header>
+                              <Modal.Content>
+                                  <p>Name: {this.state.userDetails.name}</p>
+                                  <p>Username: {this.state.userDetails.username}</p>
+                                  <p>Journal: {this.state.userDetails.journal}</p>
+                                  {/* <p>Consultation history: {this.state.userDetails.history}</p> */}
+                              </Modal.Content>
+
+                              <Modal.Actions>
+                                <Button color='black' onClick={() => {this.closeModal()}}>
+                                    Close
+                                </Button>
+                            </Modal.Actions>
+
+                          </Modal>
+                            
                         ))}
                     </Table.Body>
                 </Table>
