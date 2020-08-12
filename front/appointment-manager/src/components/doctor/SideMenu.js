@@ -2,11 +2,19 @@ import React, { Component } from 'react'
 import { Menu } from 'semantic-ui-react'
 import './SideMenu.scss'
 import { NavLink } from 'react-router-dom';
+import { withRouter } from 'react-router'
 
 class SideMenu extends Component {
+
+    constructor(props){
+        super(props);
+        this.logOut = this.logOut.bind(this);
+    }
+    
     handleItemClick = name => this.setState({ activeItem: name })
     logOut = () => {
-        console.log('log out!');
+        localStorage.clear();
+        this.props.history.push('/login');
     }
 
     render() {
@@ -53,4 +61,4 @@ class SideMenu extends Component {
     }
 }
 
-export default SideMenu;
+export default withRouter(SideMenu);

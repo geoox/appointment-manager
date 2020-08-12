@@ -2,11 +2,18 @@ import React, { Component } from 'react'
 import { Menu } from 'semantic-ui-react'
 import './AdminMenu.scss'
 import { NavLink } from 'react-router-dom';
+import { withRouter } from 'react-router'
 
 class AdminMenu extends Component {
+
+    constructor(props){
+        super(props);
+    }
+    
     handleItemClick = name => this.setState({ activeItem: name })
     logOut = () => {
-        console.log('log out!');
+        localStorage.clear();
+        this.props.history.push('/login');
     }
 
     render() {
@@ -63,4 +70,4 @@ class AdminMenu extends Component {
     }
 }
 
-export default AdminMenu;
+export default withRouter(AdminMenu);

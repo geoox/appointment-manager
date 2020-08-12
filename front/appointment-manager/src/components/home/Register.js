@@ -38,10 +38,6 @@ class RegisterForm extends Component {
                         <label>Password</label>
                         <input placeholder='Password' type='password' />
                     </Form.Field>
-                    <Form.Field>
-                        <label>Group</label>
-                        <input placeholder='Group' />
-                    </Form.Field>
                     <Form.Field
                         control={Select}
                         options={RoleOptions}
@@ -49,6 +45,10 @@ class RegisterForm extends Component {
                         placeholder='Role'
                         onChange={(e, { value }) => { this.role = value; }}
                     />
+                    <Form.Field>
+                        <label>Specialty</label>
+                        <input placeholder='Specialty' />
+                    </Form.Field>
 
                     <Button icon labelPosition='right' type="submit" onClick={() => this.onRegisterClick}>
                         Register
