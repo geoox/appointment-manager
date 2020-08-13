@@ -14,11 +14,11 @@ import AdminAccounts from '../admin/AdminAccounts';
 import AdminClinics from '../admin/AdminClinics';
 
 function App() {
-  var loggedIn = true;
+  var loggedIn = false;
   return (
     <Switch>
       <Route exact path="/">
-        {loggedIn ? <Redirect to="/patient/dashboard" /> : <LoginForm />}
+        {loggedIn ? <Redirect to="/patient/dashboard" /> : <Redirect to="/login" />}
       </Route>
       <Route path='/login' component={LoginForm}></Route>
       <Route path='/register' component={RegisterForm}></Route>

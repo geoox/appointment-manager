@@ -91,7 +91,7 @@ class LoginForm extends Component {
                         Log In
                         <Icon name='right arrow' />
                     </Button>
-                    <Button floated='right' className="register-btn" onClick={() => this.props.history.push('/register')}>Register</Button>
+                    {/* <Button floated='right' className="register-btn" onClick={() => this.props.history.push('/register')}>Register</Button> */}
 
                 </Form>
             </div>
