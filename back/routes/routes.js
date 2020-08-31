@@ -247,7 +247,19 @@ router.delete('/delete/:user', (req, res, next) => {
     User.deleteOne({
         username: req.params.user
     })
-    .then( response => res.status(200).json(response))
+    .then( response => {
+        Appointment.deleteMany({
+            $or: [{
+                patient_username: req.params.user
+            },{
+                doctor_username: req.params.user
+            }], function(err,docs){
+                if(!err) res.send(docs);
+            }}
+        )
+        .then(response2 => res.status(200).json(response2))
+        
+    })
     .catch(err => res.status(500).json(err));
 })
 

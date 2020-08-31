@@ -5,6 +5,7 @@ import { Table, Grid, Button, Header, Icon } from 'semantic-ui-react'
 import _ from 'lodash';
 
 
+
 class AdminAccounts extends Component {
 
     constructor(props) {
@@ -18,6 +19,11 @@ class AdminAccounts extends Component {
 
     componentDidMount() {
 
+        this.fetchAccounts();
+
+    }
+
+    fetchAccounts(){
         fetch('https://appointment-mng.herokuapp.com/accounts')
             .then(responses => responses.json().then(accounts => {
                 console.log('responses', accounts)
@@ -25,7 +31,6 @@ class AdminAccounts extends Component {
                     data: accounts
                 })
             }));
-
     }
 
     handleSort = clickedColumn => () => {
@@ -50,6 +55,19 @@ class AdminAccounts extends Component {
     onRegisterClick(){
         console.log('register clicked');
         this.props.history.push('/register');
+    }
+
+    onUserDeleteClick(username){
+        console.log('delete clicked: ' + username);
+        fetch('https://appointment-mng.herokuapp.com/delete/'+username,
+        {
+            method: "delete"
+        })
+        .then(responses => responses.json()
+        .then(afterDelete => {
+            console.log('delete done!', afterDelete)
+            this.fetchAccounts();
+        }));
     }
 
     render() {
@@ -88,6 +106,11 @@ class AdminAccounts extends Component {
                                     >
                                         Role
                                     </Table.HeaderCell>
+                                    <Table.HeaderCell
+                                        sorted={column === 'role' ? direction : null}
+                                    >
+                                        Action
+                                    </Table.HeaderCell>
                                 </Table.Row>
                             </Table.Header>
                             <Table.Body>
@@ -96,6 +119,7 @@ class AdminAccounts extends Component {
                                         <Table.Cell>{username}</Table.Cell>
                                         <Table.Cell>{name}</Table.Cell>
                                         <Table.Cell>{user_role}</Table.Cell>
+                                <Table.Cell>{user_role !== 'admin' ? <Icon name='user delete' onClick={()=>this.onUserDeleteClick(username)} /> : <span></span>}</Table.Cell>
                                     </Table.Row>
                                 ))}
                             </Table.Body>
