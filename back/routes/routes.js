@@ -215,7 +215,9 @@ router.get('/clinics', (req, res, next) => {
 })
 
 router.get('/accounts', (req, res, next) => {
-    User.find({}).then(users => res.status(200).json(users)).catch(err => res.status(500).json(err));
+    User.find({})
+    .then(users => res.status(200).json(users))
+    .catch(err => res.status(500).json(err));
 })
 
 router.put('/patient/update/:user', (req, res, next) => {
@@ -239,6 +241,14 @@ router.get('/appointments/patient/:user/past', (req, res, next) => {
         patient_username: req.params.user
     }).where('date').lt(new Date()).sort('-date')
     .then(appointments => res.status(200).json(appointments)).catch(err => res.status(500).json(err));
+})
+
+router.delete('/delete/:user', (req, res, next) => {
+    User.deleteOne({
+        username: req.params.user
+    })
+    .then( response => res.status(200).json(response))
+    .catch(err => res.status(500).json(err));
 })
 
 module.exports = router;
